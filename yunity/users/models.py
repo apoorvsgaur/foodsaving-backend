@@ -36,7 +36,10 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, first_name, last_name, display_name, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
-        return self._create_user(email, password, None, None, None, **extra_fields)
+        user = self._create_user(email, password, None, None, None, **extra_fields)
+        user.is_staff = True
+        user.save(using=self._db)
+        return user
 
 
 class ProfileVisibility(enum.Enum):
@@ -67,3 +70,11 @@ class User(AbstractBaseUser, BaseModel, LocationModel):
 
     def get_short_name(self):
         return self.display_name
+
+    def has_perm(self, perm, obj=None):
+        # temporarily only allow access for admins
+        return self.is_staff
+
+    def has_module_perms(self, app_label):
+        # temporarily only allow access for admins
+        return self.is_staff
